@@ -1,21 +1,36 @@
 Option Explicit
 
 Private qManager As New QuestionnaireManager
-Private optResponder(1 To 30, 1 To 4) As MSForms.OptionButton
+Private optColumn(1 To 30, 1 To 4) As MSForms.OptionButton
 Private lblQuestion(1 To 30) As MSForms.Label
 
 Private Sub UserForm_Initialize()
-    Me.Caption = "Questionnaire - Select Answer Source"
+    Me.Caption = "Questionnaire - Select Column for Each Question"
     Me.Width = 600
     Me.ScrollBars = fmScrollBarsVertical
-    Me.ScrollHeight = 1400
+    Me.ScrollHeight = 1600
     Me.ScrollTop = 0
 
-    Dim i As Integer, j As Integer
-    Dim topOffset As Integer
+    ' Add column headers
+    Dim colLabels(1 To 4) As MSForms.Label
+    Dim colNames As Variant: colNames = Array("", "Column 1", "Column 2", "Column 3", "Column 4")
+    Dim j As Integer
+    For j = 1 To 4
+        Set colLabels(j) = Me.Controls.Add("Forms.Label.1", "lblCol" & j)
+        With colLabels(j)
+            .Caption = colNames(j)
+            .Left = 280 + (j - 1) * 60
+            .Top = 10
+            .Width = 60
+            .TextAlign = fmTextAlignCenter
+            .Font.Bold = True
+        End With
+    Next j
 
+    ' Add question rows
+    Dim i As Integer, topOffset As Integer
     For i = 1 To 30
-        topOffset = 20 + (i - 1) * 35
+        topOffset = 30 + (i - 1) * 35
 
         ' Question Label
         Set lblQuestion(i) = Me.Controls.Add("Forms.Label.1", "lblQ" & i)
@@ -23,26 +38,26 @@ Private Sub UserForm_Initialize()
             .Caption = i & ". " & qManager.Question(i)
             .Left = 20
             .Top = topOffset
-            .Width = 280
+            .Width = 250
             .Height = 18
         End With
 
+        ' Option buttons for each column
         For j = 1 To 4
-            ' Responder Option Button
-            Set optResponder(i, j) = Me.Controls.Add("Forms.OptionButton.1", "optR_" & i & "_" & j)
-            With optResponder(i, j)
-                .Caption = "R" & j
-                .Left = 320 + ((j - 1) * 50)
+            Set optColumn(i, j) = Me.Controls.Add("Forms.OptionButton.1", "optCol_" & i & "_" & j)
+            With optColumn(i, j)
+                .Caption = ""
+                .Left = 280 + (j - 1) * 60 + 20
                 .Top = topOffset
-                .Width = 40
-                .GroupName = "Group_" & i
+                .Width = 20
+                .GroupName = "Group_" & i ' ensures only 1 per question
             End With
         Next j
     Next i
 
     ' Submit Button
     With cmdSubmit
-        .Top = topOffset + 40
+        .Top = topOffset + 50
         .Left = 250
         .Width = 100
         .Caption = "Submit"
@@ -53,8 +68,8 @@ Private Sub cmdSubmit_Click()
     Dim i As Integer, j As Integer
     For i = 1 To 30
         For j = 1 To 4
-            If optResponder(i, j).Value Then
-                qManager.SelectedResponder(i) = j
+            If optColumn(i, j).Value Then
+                qManager.SelectedColumn(i) = j
                 Exit For
             End If
         Next j
