@@ -13,7 +13,6 @@ Private Sub UserForm_Initialize()
 
     Dim colNames As Variant: colNames = Array("", "Column 1", "Column 2", "Column 3", "Column 4", "Column 5")
 
-    ' Column headers
     Dim j As Integer
     For j = 1 To 5
         Dim lblHeader As MSForms.Label
@@ -28,12 +27,10 @@ Private Sub UserForm_Initialize()
         End With
     Next j
 
-    ' Question rows
     Dim i As Integer, topOffset As Integer
     For i = 1 To 30
         topOffset = 30 + (i - 1) * 35
 
-        ' Question label
         Set lblQuestion(i) = Me.Controls.Add("Forms.Label.1", "lblQ" & i)
         With lblQuestion(i)
             .Caption = i & ". " & qManager.Question(i)
@@ -42,7 +39,6 @@ Private Sub UserForm_Initialize()
             .Width = 260
         End With
 
-        ' Dot buttons (5 per row)
         For j = 1 To 5
             Set btnDot(i, j) = Me.Controls.Add("Forms.CommandButton.1", "btnDot_" & i & "_" & j)
             With btnDot(i, j)
@@ -56,7 +52,6 @@ Private Sub UserForm_Initialize()
             End With
         Next j
 
-        ' Receive button
         Set btnReceive(i) = Me.Controls.Add("Forms.CommandButton.1", "btnReceive" & i)
         With btnReceive(i)
             .Caption = "Receive"
@@ -67,12 +62,20 @@ Private Sub UserForm_Initialize()
         End With
     Next i
 
-    ' Submit Button
+    ' Submit
     With cmdSubmit
         .Top = topOffset + 50
         .Left = 300
         .Width = 100
         .Caption = "Submit"
+    End With
+
+    ' Receive All
+    With cmdReceiveAll
+        .Top = topOffset + 50
+        .Left = 420
+        .Width = 100
+        .Caption = "Receive All"
     End With
 End Sub
 
@@ -82,25 +85,41 @@ Private Sub cmdSubmit_Click()
     Unload Me
 End Sub
 
-Private Sub btnDot_Click(Index As Integer)
-    Dim i As Integer, j As Integer
-    Dim parts() As String
-    parts = Split(Me.Controls(Index).Tag, ":")
-    i = CInt(parts(0))
-    j = CInt(parts(1))
+Private Sub cmdReceiveAll_Click()
+    Dim i As Integer
+    For i = 1 To 30
+        SimulateAPIResponse i
+        UpdateDotColors i
+    Next i
+End Sub
 
-    qManager.SelectedColumn(i) = j
-    qManager.AnswerState(i) = "Yes" ' Default if manually selected
+Private Sub btnReceive_Click()
+    Dim ctrl As Control
+    Set ctrl = Me.ActiveControl
+    Dim i As Integer: i = CInt(ctrl.Tag)
+
+    SimulateAPIResponse i
     UpdateDotColors i
 End Sub
 
-Private Sub btnReceive_Click(Index As Integer)
-    Dim i As Integer: i = CInt(Me.Controls(Index).Tag)
+Private Sub btnDot_Click()
+    Dim ctrl As Control
+    Set ctrl = Me.ActiveControl
 
-    Dim rndVal As Integer: rndVal = Int(Rnd() * 3) + 1
+    Dim parts() As String: parts = Split(ctrl.Tag, ":")
+    Dim i As Integer: i = CInt(parts(0))
+    Dim j As Integer: j = CInt(parts(1))
+
+    qManager.SelectedColumn(i) = j
+    qManager.AnswerState(i) = "Yes"
+    UpdateDotColors i
+End Sub
+
+Private Sub SimulateAPIResponse(i As Integer)
+    Dim responseType As Integer: responseType = Int(Rnd() * 3) + 1
     Dim colChoice As Integer: colChoice = Int(Rnd() * 5) + 1
 
-    Select Case rndVal
+    Select Case responseType
         Case 1
             qManager.AnswerState(i) = "Yes"
             qManager.SelectedColumn(i) = colChoice
@@ -109,10 +128,8 @@ Private Sub btnReceive_Click(Index As Integer)
             qManager.SelectedColumn(i) = colChoice
         Case Else
             qManager.AnswerState(i) = "Not Present"
-            qManager.SelectedColumn(i) = Empty
+            qManager.SelectedColumn(i) = colChoice
     End Select
-
-    UpdateDotColors i
 End Sub
 
 Private Sub UpdateDotColors(i As Integer)
