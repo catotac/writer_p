@@ -1,75 +1,72 @@
-Sub ShowValidationForm()
+' Macro to open the Validation Viewer Form
+Sub ShowValidationPopup()
     ValidationForm.Show
 End Sub
 
-Sub FillValidationTablesFromExcel(filePath As String)
-    Dim data As Variant
-    data = LoadValidationDataFromExcel(filePath)
-
-    Dim doc As Document
-    Set doc = ActiveDocument
-
-    Dim i As Integer, tbl As Table, rowOffset As Integer
-    For i = 1 To UBound(data, 1)
-        Dim tableType As String: tableType = data(i, 1)
-        Dim rowIndex As Integer
-
-        If tableType = "Complaint" Then
-            Set tbl = doc.Tables(2) ' Complaint table
-            rowOffset = 2
-            rowIndex = GetRowIndex(tbl, data(i, 2), rowOffset)
-        ElseIf tableType = "Taxonomy" Then
-            Set tbl = doc.Tables(3) ' Taxonomy table
-            rowOffset = 2
-            rowIndex = GetRowIndex(tbl, data(i, 2), rowOffset)
-        Else
-            Continue For
-        End If
-
-        If rowIndex > 0 Then
-            tbl.Cell(rowIndex, 3).Range.Text = SymbolFromText(data(i, 5)) ' Intake
-            tbl.Cell(rowIndex, 4).Range.Text = SymbolFromText(data(i, 6)) ' ECMP
-            tbl.Cell(rowIndex, 5).Range.Text = SymbolFromText(data(i, 7)) ' Letter
-            tbl.Cell(rowIndex, 6).Range.Text = SymbolFromText(data(i, 8)) ' Notes
-            tbl.Cell(rowIndex, 7).Range.Text = SymbolFromText(data(i, 9)) ' Results
-        End If
-    Next i
-End Sub
-
-Function SymbolFromText(text As String) As String
-    Select Case LCase(Trim(text))
-        Case "yes": SymbolFromText = "✓"
-        Case "no": SymbolFromText = "✗"
-        Case Else: SymbolFromText = "☐"
+' Function to convert Yes/No text to symbols
+Function ToSymbol(val As Variant) As String
+    Select Case LCase(Trim(val))
+        Case "yes": ToSymbol = "✓"
+        Case "no": ToSymbol = "✗"
+        Case Else: ToSymbol = ""
     End Select
 End Function
 
-Function GetRowIndex(tbl As Table, question As String, startRow As Integer) As Integer
-    Dim r As Integer
-    For r = startRow + 1 To tbl.Rows.Count
-        If Trim(tbl.Cell(r, 1).Range.Text) Like "*" & question & "*" Then
-            GetRowIndex = r
-            Exit Function
-        End If
-    Next r
-    GetRowIndex = -1
-End Function
-
-Function LoadValidationDataFromExcel(filePath As String) As Variant
+' Loads the Excel file and populates the form
+Sub PopulateValidationFormFromExcel(filePath As String, form As Object)
     Dim xlApp As Object, xlWB As Object, xlSheet As Object
-    Dim lastRow As Long, data As Variant
+    Dim data As Variant
+    Dim lastRow As Long
+    Dim i As Integer
 
     Set xlApp = CreateObject("Excel.Application")
     Set xlWB = xlApp.Workbooks.Open(filePath, False, True)
     Set xlSheet = xlWB.Sheets("ValidationData")
 
+    ' Read header values
+    form.txtCaseNumber.Text = xlSheet.Range("B1").Value
+    form.txtCustomer.Text = xlSheet.Range("B2").Value
+
+    ' Read tabular data
     lastRow = xlSheet.Cells(xlSheet.Rows.Count, 1).End(-4162).Row
-    data = xlSheet.Range("A2:I" & lastRow).Value
+    data = xlSheet.Range("A4:H" & lastRow).Value
+
+    For i = 1 To UBound(data, 1)
+        Dim tableType As String: tableType = Trim(data(i, 1))
+        Dim desc As String: desc = Trim(data(i, 2))
+
+        Dim src As String: src = ToSymbol(data(i, 3))
+        Dim intake As String: intake = ToSymbol(data(i, 4))
+        Dim ecmp As String: ecmp = ToSymbol(data(i, 5))
+        Dim letter As String: letter = ToSymbol(data(i, 6))
+        Dim notes As String: notes = data(i, 7)
+        Dim callres As String: callres = data(i, 8)
+
+        ' Determine control prefix: CQ for Complaint, TQ for Taxonomy
+        Dim ctrlPrefix As String
+        If tableType = "Complaint" Then
+            ctrlPrefix = "CQ" & Mid(desc, 2)
+        ElseIf tableType = "Taxonomy" Then
+            ctrlPrefix = "TQ" & Mid(desc, 2)
+        Else
+            GoTo SkipRow
+        End If
+
+        ' Try to set controls using dynamic naming
+        On Error Resume Next
+        form.Controls("lbl" & ctrlPrefix & "Src").Caption = src
+        form.Controls("lbl" & ctrlPrefix & "Intake").Caption = intake
+        form.Controls("lbl" & ctrlPrefix & "ECMP").Caption = ecmp
+        form.Controls("lbl" & ctrlPrefix & "Letter").Caption = letter
+        form.Controls("txt" & ctrlPrefix & "Notes").Text = notes
+        form.Controls("txt" & ctrlPrefix & "Call").Text = callres
+        On Error GoTo 0
+
+SkipRow:
+    Next i
 
     xlWB.Close False
     xlApp.Quit
     Set xlSheet = Nothing: Set xlWB = Nothing: Set xlApp = Nothing
-
-    LoadValidationDataFromExcel = data
-End Function
+End Sub
 
