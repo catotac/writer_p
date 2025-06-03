@@ -1,7 +1,6 @@
 Private Sub cmdBrowse_Click()
     Dim fd As FileDialog
     Set fd = Application.FileDialog(msoFileDialogFilePicker)
-    
     With fd
         .Title = "Select Excel File"
         .Filters.Clear
@@ -14,14 +13,11 @@ End Sub
 
 Private Sub cmdGenerate_Click()
     If txtFilePath.Text = "" Then
-        MsgBox "Please select an Excel file first.", vbExclamation
+        MsgBox "Please select an Excel file.", vbExclamation
         Exit Sub
     End If
-
-    ' Call macro logic
-    Call InsertValidationTablesFromForm(txtFilePath.Text)
-
-    ' Close form
+    Call FillValidationTablesFromExcel(txtFilePath.Text)
+    MsgBox "Tables filled successfully!", vbInformation
     Unload Me
 End Sub
 
