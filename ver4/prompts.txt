@@ -1,0 +1,40 @@
+You are given a summary of a customer complaint case. Review it and answer the following questions:
+
+1. Clarity and Specificity:  
+   - Is the summary clearly written and specific enough for a third party (not involved in the case) to understand the nature of the complaint?
+
+2. Key Factors:  
+   - Does the summary include the core elements of the case (what happened, when, to whom, and any customer impact)?
+
+3. Sensitive Content Check:  
+   - Does the summary **avoid** any restricted or sensitive references such as:
+     - Attorney-Client Privilege  
+     - Unusual Activity Report (UAR)  
+     - Suspicious Activity Report (SAR)  
+     - Confidential or Restricted Information
+
+4. Resolution Coverage:  
+   - If a resolution is provided in the note, does the summary accurately include all those resolution details?
+
+5. Consistency of Amounts and Dates:  
+   - If the note mentions specific dates or amounts, do those match exactly with what’s written in the summary?
+
+Provide a Yes/No answer for each of the 5 checks above, with a short justification if the answer is No.
+
+
+
+You are given a note describing a customer complaint case. Review it and answer the following questions:
+
+1. Clarity and Specificity:  
+   - Is the note written clearly and specifically enough that a third party (e.g., quality reviewer, investigator) could understand the entire context?
+
+2. Key Details:  
+   - Does the note include essential elements such as:
+     - What the customer complaint is about  
+     - Timeline of events  
+     - Customer impact  
+     - Internal actions taken  
+     - Final resolution (if available)
+
+Answer Yes/No for each question with a brief justification if the answer is No.
+
